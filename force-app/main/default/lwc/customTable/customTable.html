@@ -1,0 +1,9 @@
+<template>
+    <table>
+        <tr>
+            <template for:each={tHead} for:item="item">
+                <th key={item.id}>{item}</th>
+            </template>
+        </tr>
+    </table>
+</template>
