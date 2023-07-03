@@ -1,0 +1,57 @@
+<template>
+	<!-- <template if:true={isHeader}>
+        <div class="RecordInfo">
+			<span class="slds-badge slds-badge_lightest" style="display:inline-block;">
+                Total Records: {totalRecords}
+            </span>
+			<span class="slds-badge slds-badge_lightest" style="display: inline-block;">
+                Page {currentPage} of {totalPages}
+            </span>
+		</div>
+    </template> -->
+	<template if:true={isBottomOfPagination}>
+		<div class="slds-align_absolute-center paginationBottomContainer">
+			<span class="pageSizeText">Page-Size:</span>
+			<div class="pageComboContainer">
+				<table class="pagesizelistContainer">
+					<tr>
+						<td class="pagesizerow"> &nbsp; </td>
+						<td class="pagesizerow">
+							<lightning-combobox name="pickList" value={value} default="10" placeholder="10"
+								options={pageSizeOptions} dropdown-alignment="auto" style="display: flex;"
+								onchange={handleChangeInRow} onclick={handleback}>
+							</lightning-combobox>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="redirectPageContainer">
+				<div class="slds-p-right_xx-small" onclick={handleback}>
+					<lightning-button variant="base" disabled={bDisableFirst} icon-name="utility:jump_to_left"
+						class="slds-p-horizontal_x-small" alternative-text="first page" onclick={handleFirst}>
+					</lightning-button>
+
+					<lightning-button variant="base" disabled={bDisableFirst} icon-name="utility:chevronleft"
+						alternative-text="Previous" onclick={handlePrev}></lightning-button>
+				</div>
+
+
+				<div onclick={handleback}>
+					<template for:each={pageNumber} for:item="page">
+						<lightning-button key={page.id} class={page.class} label={page.value} onclick={handleRandomClick}>
+						</lightning-button>
+					</template>
+				</div>
+
+				<div class="slds-p-left_xx-small" onclick={handleback}>
+					<lightning-button variant="base" disabled={bDisableLast} icon-name="utility:chevronright"
+						alternative-text="Next" onclick={handleNext} class="slds-p-horizontal_x-small"
+						icon-position="right"></lightning-button>
+
+					<lightning-button variant="base" disabled={bDisableLast} icon-name="utility:jump_to_right"
+						alternative-text="last page" onclick={handleLast} icon-position="right"></lightning-button>
+				</div>
+			</div>
+		</div>
+	</template>
+</template>

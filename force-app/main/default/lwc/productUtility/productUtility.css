@@ -1,3 +1,35 @@
-.dummy{
-	color : black;
+.mainComponentStyle{
+	background-color: white;
 }
+.templateHeder{
+	margin-top: -0.1%;
+	background-color: white;
+	max-width: 100%;
+	padding-bottom: 1%;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+.header1{
+	padding-top: 1%;
+       display: flex;
+	   margin-left: 1%;
+	   justify-content: space-between;
+	   /* padding-right: 1%; */
+}
+.pageNumberSelectedClass{
+	--slds-c-button-neutral-color-background: rgb(1, 118, 211);
+	--sds-c-button-text-color: white;
+	--slds-c-button-neutral-color-background-hover: rgb(1, 118, 211);
+	--slds-c-button-text-color-hover: white;
+}
+
+.pageNumberClass{
+	--sds-c-button-text-color: rgb(1, 118, 211);
+}
+.RecordInfo{
+	margin-left:70%;
+	display: flex;
+}
+.hideFirstColTable table th:first-child, .hideFirstColTable table td:first-child{
+        display: none !important;
+    }

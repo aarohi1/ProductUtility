@@ -1,9 +1,10 @@
 <template>
-    <table>
-        <tr>
-            <template for:each={tHead} for:item="item">
-                <th key={item.id}>{item}</th>
-            </template>
-        </tr>
-    </table>
+	<lightning-datatable 
+                data-id="dataT" 
+                key-field="Id" 
+                data={allRecords} 
+                show-row-number-column='false'
+                editable="true" 
+                columns={tHead}>
+	</lightning-datatable>
 </template>

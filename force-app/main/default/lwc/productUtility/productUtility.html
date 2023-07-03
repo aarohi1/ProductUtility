@@ -1,5 +1,53 @@
 <template>
-    <template if:true={hasValue}>
-        <c-custom-Table t-head={fieldMap}></c-custom-Table>
-    </template>
+	<div class='slds-card'>
+		<div class="templateHeder ">
+			<div class="header1">
+                <c-header-Of-Table heading="Product" header-icon="standard:product">
+                </c-header-Of-Table>
+            </div>
+
+			<div class="RecordInfo">
+				<span class="slds-badge slds-badge_lightest" style="display:inline-block;">
+                    Total Records: {totalRecords}
+                </span>
+				<span class="slds-badge slds-badge_lightest" style="display: inline-block;">
+                    Page {currentPage} of {totalPages}
+                </span>
+			</div>
+		</div>
+       
+            <template if:true={hasValue}>
+                 <div class="hideFirstColTable">
+                    <c-custom-Table 
+                        all-records={tableData} 
+                        t-head={tHeadList} 
+                        is-header="true" 
+                        current-page={currentPage}
+                        page-size={pageSize} 
+                        total-records={totalRecords} 
+                        total-pages={totalPages} 
+                        page-number={handlePageList}
+                    >
+                    </c-custom-Table>
+                 </div>
+            </template>
+		<div>
+			<c-custom-Pagination-Component 
+                page-size-options={pageSizeOptions} 
+                is-header='false' 
+                hide-bottom='false'
+				is-bottom-of-pagination='true' 
+                page-number={pageNumber}
+                onclickfirstpage={handleOnClickFirstPage}
+                onclickprevpage={handleOnClickPrevPage}
+                onclicknextpage={handleOnClickNextPage}
+                onclicklastpage={handleOnClickLastPage}
+                onclickrandompage={handleOnClickRandomPage}
+                onchangepagesize={handlePageSizeChange}
+                b-disable-first={bDisableFirst}
+                b-disable-last={bDisableLast}
+            >
+			</c-custom-Pagination-Component>
+		</div>
+	</div>
 </template>

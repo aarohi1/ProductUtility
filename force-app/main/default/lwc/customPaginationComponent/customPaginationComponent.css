@@ -1,0 +1,28 @@
+.paginationBottomContainer{
+	display: inline-flex; 
+	background-color: white; 
+	width: 100%; 
+	padding: 1%;
+}
+.pageSizeText{
+	margin-left: 1rem; 
+	padding-bottom: 0.2rem;
+}
+.pageComboContainer{
+	display: inline-flex; 
+	margin-right: auto; 
+	padding: 1%;
+}
+.pagesizelistContainer{
+	padding: 1rem; 
+	height: -webkit-fill-available;
+}
+.pagesizerow{
+	width:6%;
+}
+.redirectPageContainer{
+	display: flex; 
+	align-items: center; 
+	width: 100%;     
+	margin-left: 25%;
+}

@@ -7,12 +7,18 @@ public class ProductUtility {
         String query = 'SELECT ';
         String discountTierQuery;
         for(Product_Utility_Setting__mdt p_mdt : Product_Utility_Setting__mdt.getAll().values()){
+            system.debug('p_mdt.DeveloperName===>'+p_mdt.DeveloperName);
+            system.debug('p_mdt.MasterLabel===>'+p_mdt.MasterLabel);
             Map<String, String> fieldMap = new Map<String,String>();
             if(p_mdt.DeveloperName == 'Product2'){
                 query += p_mdt.Display_Fields__c + ',';
+                system.debug('Qyery after adding display fields===>'+query);
             }
+
             else if(p_mdt.MasterLabel == 'Pricebook Entry'){
                 query += '(SELECT Id,' + p_mdt.Display_Fields__c + ' FROM ' + p_mdt.Child_Relationship_Name__c + ' WHERE isActive = True AND Pricebook2.isActive = TRUE),'; 
+                system.debug('Qyery after adding display fields from child object===>'+query);
+
             }
             else{
                 if(p_mdt.Display_Fields__c != null)
@@ -41,8 +47,8 @@ public class ProductUtility {
             }
             allObjFieldMap.put(p_mdt.MasterLabel,fieldMap);
         }
-        query += ' Id FROM Product2 WHERE IsActive=true ' ;
-        System.debug('Query==>'+query);
+        query += ' Id FROM Product2 WHERE IsActive=true and List_Price_CPQ__c!=null' ;
+        System.debug('Final Query==>'+query);
         List<sObject> lstRecords = Database.query(query);
        	System.debug('listRecord===>'+lstRecords);
         //List<sObject> discountTierRecords = Database.query(discountTierQuery);
