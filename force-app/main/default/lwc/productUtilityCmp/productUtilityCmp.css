@@ -8,28 +8,43 @@
 	justify-content: space-between;
 }
 
+.field-dependency-labelcheckbox{
+	display:-webkit-inline-box;
+}
 .record-info {
 	display: flex;
 	margin-right: 1%;
 }
 
 .container {
-		justify-content: space-between;
+		justify-content: space-between !important;
 }
 .field-dependency-container {	
+	justify-content: space-between !important;
 	margin-top: 2%;
 }
 
 .record-filter-container {
-	margin-top: 2%;
+	display: flex;
+	margin-right: 1%;
 }
-
-.button-style {
+.search-button-style{
+	display: flex;
+	margin-top:2.3%;
+	padding:10px;
+	width:25%;
+}
+.number-button-style{
+	display: flex;
+	margin-top:2.3%;
+	padding:10px;
+	width:12%;
+}
+.button-style{
 	display: flex;
 	margin-top:2.3%;
 	padding:10px;
 }
-
 .slds-table .slds-row-number::after {
 	display: none !important;
 }

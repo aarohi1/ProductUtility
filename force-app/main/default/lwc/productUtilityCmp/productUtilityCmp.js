@@ -2,8 +2,12 @@ import { LightningElement, track, wire } from 'lwc';
 import getData from '@salesforce/apex/ProductLWCController.getData';
 import getFilteredData from '@salesforce/apex/ProductLWCController.getFilteredData';
 import getAllObjFiedlMap from '@salesforce/apex/ProductLWCController.getAllObjFiedlMap';
+import updateProduct from '@salesforce/apex/ProductLWCController.updateProduct';
 import { loadStyle } from 'lightning/platformResourceLoader';
 import LightningCardCSS from '@salesforce/resourceUrl/datatableCSS';
+import { refreshApex } from '@salesforce/apex';
+import { updateRecord } from 'lightning/uiRecordApi';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class ProductUtilityCmp extends LightningElement {
     
@@ -13,7 +17,7 @@ export default class ProductUtilityCmp extends LightningElement {
     @track tableData = [];
     @track allFieldMap = [];
     @track fieldDependencyList = [];
-
+    @track wireProductList=[];
 
     //Pagination
     @track currentPage = 1;
@@ -22,7 +26,6 @@ export default class ProductUtilityCmp extends LightningElement {
     @track recordEnd = 10;
     @track pageSize = 10;
     @track totalRecords = 0;
-    //@track totalPages = 0 ;
 
     @track pageNumber = [];
     @track tHeadList;
@@ -35,22 +38,27 @@ export default class ProductUtilityCmp extends LightningElement {
     @track dataTableColumns = [];
 
     //Load data
-    connectedCallback() {
+    getProductData(){
         getData({})
         .then(result => {
-            console.log(result);
             this.originalData = result;
             this.filteredData = result;
-            this.tableData = JSON.parse(JSON.stringify(result));           
-        })
+            this.getField();
+        })        
+    }
 
+    getField(){
         getAllObjFiedlMap({})
         .then(result => {
-            console.log(result);
             this.allFieldMap = result;
             this.processTableBuild();
         })   
     }
+
+    connectedCallback(){
+        this.getProductData();
+    }
+    
 
     /**
      * getters
@@ -80,68 +88,63 @@ export default class ProductUtilityCmp extends LightningElement {
     }
 
     getDataTableColumns(){  
-        try {      
-            let fields = [];
-            var i = 0;
-            fields.push({ label: '', fieldName: 'rowNumber', type: 'number', fixedWidth: 40 });
-            for (var key in this.allFieldMap.Product) {
-                if (i == 0) {
+        let fields = [];
+        var i = 0;
+        fields.push({ label: '', fieldName: 'rowNumber', type: 'number', fixedWidth: 40 });
+        for (var key in this.allFieldMap.Product) {
+            if (i == 0) {
+                fields = [...fields, {
+                    label: this.allFieldMap.Product[key].split(',')[0],
+                    fieldName: 'URLField',
+                    editable: false,
+                    showRowNumberColumn: false,
+                    type: 'url',
+                    typeAttributes: {
+                        label: {
+                            fieldName: key
+                        },
+                        tooltip: {
+                            fieldName: key
+                        },
+
+                        target: '_blank'
+                    },
+                    sortable: true
+                }];
+            }
+            else {
+                if (key == 'List_Price_CPQ__c') {
                     fields = [...fields, {
                         label: this.allFieldMap.Product[key].split(',')[0],
-                        fieldName: 'URLField',
-                        editable: false,
+                        fieldName: key,
+                        editable: true,
                         showRowNumberColumn: false,
-                        type: 'url',
-                        typeAttributes: {
-                            label: {
-                                fieldName: key
-                            },
-                            tooltip: {
-                                fieldName: key
-                            },
-
-                            target: '_blank'
-                        },
-                        sortable: true
+                        type: 'number'
                     }];
                 }
                 else {
-                    if (key == 'List_Price_CPQ__c') {
-                        fields = [...fields, {
-                            label: this.allFieldMap.Product[key].split(',')[0],
-                            fieldName: key,
-                            editable: true,
-                            showRowNumberColumn: false,
-                            type: 'number'
-                        }];
-                    }
-                    else {
-                        fields = [...fields, {
-                            label: this.allFieldMap.Product[key].split(',')[0],
-                            fieldName: key,
-                            editable: true,
-                            showRowNumberColumn: false,
-                            type: 'text'
-                        }];
-                    }
+                    fields = [...fields, {
+                        label: this.allFieldMap.Product[key].split(',')[0],
+                        fieldName: key,
+                        editable: true,
+                        showRowNumberColumn: false,
+                        type: 'text'
+                    }];
                 }
-                i++;
             }
-            fields.push({
-                label: 'Related', fieldName: 'Related', type: 'button', title: 'relatedObject',
-                typeAttributes: {
-                    label: {
-                        fieldName: 'Related'
-                    },
-                    variant: 'base',
-                    target: 'relatedObject'
+            i++;
+        }
+        fields.push({
+            label: 'Related', fieldName: 'Related', type: 'button', title: 'relatedObject',
+            typeAttributes: {
+                label: {
+                    fieldName: 'Related'
                 },
-            });
-            return fields;
-        } catch (error) {
-            console.log(error);
-            console.log(error.stack);
-        }    
+                variant: 'base',
+                target: 'relatedObject'
+            },
+        });
+        return fields;
     }
 
     /**
@@ -154,62 +157,112 @@ export default class ProductUtilityCmp extends LightningElement {
     }
 
     processTableBuild(){ 
-        try {
-            this.isLoading = true;
-            this.countTablePageCounts();
-            this.dataTableColumns = this.getDataTableColumns();
-            this.processFieldDependencyValues();    
-            this.isLoading = false;   
-            this.paginationHelper();
-            this.handlePageList();
-            this.isLoading = false;
-        } catch (error) {
-            console.log(error);
-            console.log(error.stack);
-        }    
+        this.isLoading = true;
+        this.countTablePageCounts();
+        this.dataTableColumns = this.getDataTableColumns();
+        this.processFieldDependencyValues();    
+        this.isLoading = false;   
+        this.paginationHelper();
+        this.handlePageList();
+        this.isLoading = false;
     }
     
     processFieldDependencyValues() {
-        try {
-            this.fieldDependencyList = [];
-            for (var key in this.allFieldMap) {
-                console.log('KEY==>', key);
-                if (key != 'Product' && key != 'Discount Schedule') {
-                    this.fieldDependencyList.push(key);
-                }
+        this.fieldDependencyList = [];
+        for (var key in this.allFieldMap) {
+            if (key != 'Product' && key != 'Discount Schedule') {
+                this.fieldDependencyList.push(key);
             }
-            console.log(JSON.stringify(this.fieldDependencyList));           
-            for (var j in this.fieldDependencyList) {
-                if (this.fieldDependencyList[j] == 'Discount Tier') {
-                    this.fieldDependencyList[j] = 'Volume Price';
-                }
-                if (this.fieldDependencyList[j] == 'Pricebook Entry') {
-                    this.fieldDependencyList[j] = 'List Price';
-                }
-            }
-            console.log(JSON.stringify(this.fieldDependencyList));
-        } catch (error) {
-            console.log(error);
-            console.log(error.stack);
         }    
+        for (var j in this.fieldDependencyList) {
+            if (this.fieldDependencyList[j] == 'Discount Tier') {
+                this.fieldDependencyList[j] = 'Volume Price';
+            }
+            if (this.fieldDependencyList[j] == 'Pricebook Entry') {
+                this.fieldDependencyList[j] = 'List Price';
+            }
+        }
     }
 
     paginationHelper(){
         this.tableData = [];
 
-        for (let i = (this.recordStart) - 1; i < this.recordEnd; i++) {
+        for (let i = (this.recordStart) - 1; i < this.recordEnd &&  i < this.filteredData.length; i++) {
             let rec = JSON.parse(JSON.stringify(this.filteredData[i].prod)); 
             
             let URLField = '/lightning/r/' + 'Product2' + '/' + rec.Id + '/view';
             let Related = 'Related';
             let rowNumber = i + 1;
             rec = { ...rec, URLField, Related, rowNumber };
-            console.log(JSON.stringify(rec));
             this.tableData.push(rec);
         }
     }
 
+    async handleSave(event){
+        this.isLoading = true;
+        // Convert datatable draft values into record objects
+        const records = event.detail.draftValues.slice().map((draftValue) => {
+            const fields = Object.assign({}, draftValue);
+            return { fields };
+        });
 
+        
+        // Clear all datatable draft values
+        this.draftValues = [];
+
+        try {
+
+            // Update all records in parallel thanks to the UI API
+            const recordUpdatePromises = records.map((record) =>
+                updateRecord(record)
+            );
+            await Promise.all(recordUpdatePromises);
+
+            this.isLoading = false;
+
+            this.refreshData();
+         
+        } catch (error) {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Error updating or reloading product',
+                    message: error.body.message,
+                    variant: 'error'
+                })
+            );
+        }
+    }
+
+    refreshData(){
+        if(this.filterPriceookId == null || this.filterPriceookId == undefined || this.filterPriceookId == '' ){
+            this.getProductData();
+        } else {
+            this.handleFilterData();
+        }
+
+        if(this.searchKey == null || this.searchKey == '' || this.searchKey == undefined){
+            this.handleSearchData();
+        }
+
+        this.paginationHelper();
+    }
+
+    handleRelatedClick(event){
+        var productId = event.detail.row.Id;
+        var childProductData = this.originalData.filter(function(item) {
+            if(item.prod.Id==productId){
+                let temp = item.prod;
+                return temp;
+            } else {
+                return false ;
+            }              
+        })
+        console.log('Child Data--->', JSON.stringify(childProductData));
+        var relatedPricebook = childProductData.map(item=>{
+            return item.prod.PricebookEntries;
+        })
+        console.log('related data==>',JSON.stringify(relatedPricebook));
+    }
     /**
      * Search input
      */
@@ -219,40 +272,32 @@ export default class ProductUtilityCmp extends LightningElement {
 
     handleSearchonKeyPress(event){
         try {
-            console.log(event.target.value);
             this.searchKey = event.target.value.toLowerCase();
-            console.log(this.searchKey);
-            console.log('event.keyCode==', event.keyCode);
 
             if (event.keyCode === 13) {
-                this.isLoading = true;
-
-                let searchString = this.searchKey ;
-                this.filteredData = this.originalData.filter( function(item) {
-                    console.log(JSON.stringify(item));
-                    console.log(item.prod.ProductCode);
-                    if(item.prod.ProductCode){
-                        let temp = item.prod.ProductCode.toLowerCase();
-                        console.log('temlo', temp);
-                        console.log('temlo', temp.search(searchString));
-                        return -1 === temp.search(searchString) ? false : true;
-                    } else {
-                        return false ;
-                    }                    
-                });
-                console.log('finished');
-                console.log(this.tableData.length);
-                console.log(this.tableData);
-                this.isLoading = false;
-                this.countTablePageCounts();
-                this.handlePageList();
-                this.paginationHelper();
-                this.handleOnClickFirstPage();
+               this.handleSearchData();
             }
         } catch (error) {
             console.log(error);
             console.log(error.stack);
         }    
+    }
+    handleSearchData(){
+        this.isLoading = true;
+        let searchString = this.searchKey ;
+        this.filteredData = this.originalData.filter( function(item) {
+            if(item.prod.ProductCode){
+                let temp = item.prod.ProductCode.toLowerCase();
+                return -1 === temp.search(searchString) ? false : true;
+            } else {
+                return false ;
+            }                    
+        });
+        this.isLoading = false;
+        this.countTablePageCounts();
+        this.handlePageList();
+        this.paginationHelper();
+        this.handleOnClickFirstPage();
     }
 
     /**
@@ -264,11 +309,13 @@ export default class ProductUtilityCmp extends LightningElement {
 
     handelFilterValue(event) {
         this.filterPriceookId = event.detail;
-        console.log(this.filterPriceookId);
+        this.handleFilterData();
+    }    
+
+    handleFilterData(){
         this.isLoading = true;
         getFilteredData({pricebookId : this.filterPriceookId})
         .then(result => {
-            console.log(result);
             this.originalData = result;
             this.filteredData = result;
             this.tableData = JSON.parse(JSON.stringify(result));     
@@ -276,8 +323,7 @@ export default class ProductUtilityCmp extends LightningElement {
             this.processTableBuild(); 
             this.handleOnClickFirstPage();    
         })
-
-    }    
+    }
 
     /**
      * Pagination
@@ -404,9 +450,7 @@ export default class ProductUtilityCmp extends LightningElement {
         //css to hide first column in datatable
         Promise.all([
             loadStyle(this, LightningCardCSS)
-        ]).then(() => {
-            console.log('Files loaded');
-        }).catch(error => {
+        ]).then(() => {}).catch(error => {
             console.log(error.body.message);
         });
     }

@@ -20,12 +20,12 @@
 
 			<div class="slds-grid container">
 				<div class="slds-badge slds-badge_lightest field-dependency-container">
-					<div style="margin-right:2%">
+					<div class="slds-m-right_x-small">
 						Field Dependencies:
 					</div>
 					<div class="slds-grid">
 						<template for:each={fieldDependencyList} for:item="fields" for:index="index">
-                            <div style="display:-webkit-inline-box;" key={fields.id}>
+                            <div class="field-dependency-labelcheckbox" key={fields.id}>
                                 {fields}<lightning-input type="checkbox" name={fields} onclick={checkBoxSelect}
                                     checked={checkbool}></lightning-input>
                             </div>
@@ -38,16 +38,14 @@
                                             label="Search"
                                             type="search"
                                             placeholder="Product Code"
-                                            style="width:10rem;"
-                                            class="button-style"
+                                            class="search-button-style"
                                             onkeypress={handleSearchonKeyPress}></lightning-input>
 
                         <lightning-input    variant="label-hidden"
                                             label="Pre"
                                             type="number"
                                             placeholder="%"
-                                            style="width:10rem;"
-                                            class="button-style"
+                                            class="number-button-style"
                                             onkeypress={handleSearchonKeyPress}></lightning-input>
 
                         <lightning-combobox name="pickList" 
@@ -115,7 +113,7 @@
 				</c-custom-Table>-->
 			</template>
 
-			<template if:true={isDetailPage}>
+			<!-- <template if:true={isDetailPage}>
 				<div>
 					<section>
 						<div>
@@ -125,7 +123,7 @@
 						</div>
 					</section>
 				</div>
-			</template>
+			</template> -->
 		</div>
 		<div>
 			<c-custom-Pagination-Component  page-size-options={pageSizeOptions} 

@@ -98,6 +98,21 @@ public with sharing class ProductLWCController {
         }
     }
 
+    @AuraEnabled
+    public static string updateProduct(Object data) {
+        List<Product2> productForUpdate = (List<Product2>) JSON.deserialize(
+            JSON.serialize(data),
+            List<Product2>.class
+        );
+        try {
+            update productForUpdate;
+            return 'Success: products updated successfully';
+        }
+        catch (Exception e) {
+            return 'The following exception has occurred: ' + e.getMessage();
+        }
+    }
+
     public class ProductWrapperClass {
         @AuraEnabled
         public Product2 prod {get;set;}
