@@ -1,0 +1,147 @@
+<template>
+
+    <!--Main Body-->
+    <div class="slds-card">
+
+        <!--Header-->
+		<div class='header-container'>
+
+			<div class='slds-grid heading-container'>
+				<c-header-Of-Table heading="Product" header-icon="standard:product"></c-header-Of-Table>
+				<div class="RecordInfo">
+					<span class="slds-badge slds-badge_lightest" style="display:inline-block;">
+						Total Records: {totalRecords}
+					</span>
+					<span class="slds-badge slds-badge_lightest" style="display: inline-block;">
+						Page {currentPage} of {totalPages}
+					</span>
+				</div>
+			</div>
+
+			<div class="slds-grid container">
+				<div class="slds-badge slds-badge_lightest field-dependency-container">
+					<div style="margin-right:2%">
+						Field Dependencies:
+					</div>
+					<div class="slds-grid">
+						<template for:each={fieldDependencyList} for:item="fields" for:index="index">
+                            <div style="display:-webkit-inline-box;" key={fields.id}>
+                                {fields}<lightning-input type="checkbox" name={fields} onclick={checkBoxSelect}
+                                    checked={checkbool}></lightning-input>
+                            </div>
+						</template>
+					</div>
+				</div>
+				<div class="record-filter-container">
+					<div class="slds-grid">
+                        <lightning-input    variant="label-hidden"
+                                            label="Search"
+                                            type="search"
+                                            placeholder="Product Code"
+                                            style="width:10rem;"
+                                            class="button-style"
+                                            onkeypress={handleSearchonKeyPress}></lightning-input>
+
+                        <lightning-input    variant="label-hidden"
+                                            label="Pre"
+                                            type="number"
+                                            placeholder="%"
+                                            style="width:10rem;"
+                                            class="button-style"
+                                            onkeypress={handleSearchonKeyPress}></lightning-input>
+
+                        <lightning-combobox name="pickList" 
+                                            value={value} default="10" 
+                                            placeholder="+"
+                                            options={getOperator} 
+                                            dropdown-alignment="auto" class="button-style"
+                                            onchange={handleOperatorChange}></lightning-combobox>
+
+                        <lightning-button   variant="brand" 
+                                            label="Update" 
+                                            title="update"
+                                            onclick={handleClick}
+                                            class="button-style"> </lightning-button>
+
+                        <lightning-button-icon  variant="brand" 
+                                                size="medium" 
+                                                icon-name="utility:skip_back"
+							                    alternative-text="Revert" 
+                                                class="button-style"></lightning-button-icon>
+
+						<lightning-button-icon  class="button-style" 
+                                                size="medium" 
+                                                variant="brand"
+							                    icon-name="utility:filterList" 
+                                                alternative-text="Filter" 
+                                                title="filterlist"
+							                    onclick={handleFilter}></lightning-button-icon> 
+
+
+                        <template if:true={filterOpen}>
+                            <div>
+                                <c-filter-List  selected-price-book-id={filterPriceookId}
+                                                onclosefilter={handleFilter}
+                                                ongetfiltervalue={handelFilterValue}></c-filter-List>
+                            </div>
+                        </template>
+                    </div>
+				</div>
+			</div>
+		</div>
+
+        <!--Header-->
+		<div class="table-container">
+
+
+			<template if:true={isLoading}>
+				<c-spinner-Component show-loading={isLoading}></c-spinner-Component>
+			</template>
+
+			<template if:false={isLoading}>
+                <lightning-datatable data-id="dataT" 
+                                    key-field="Id" 
+                                    data={tableData} 
+                                    show-row-number-column='false'
+                                    editable="true" 
+                                    onsave={handleSave}
+                                    draft-values={draftValues}
+                                    onrowaction={handleRelatedClick}
+                                    columns={dataTableColumns}>
+                </lightning-datatable>
+                <!--
+				<c-custom-Table onhandlesave={handleSave} all-records={tableData} t-head={dataTableColumns}
+					onshowrelatedrecords={showRelatedRecord} is-header="true">
+				</c-custom-Table>-->
+			</template>
+
+			<template if:true={isDetailPage}>
+				<div>
+					<section>
+						<div>
+							<c-product-Record-Component ongetbool={handleback} child-data={childData} field-data={tHead}
+								onsaverecordpageevent={saveRecordPage} ontabnameevent={gettabname}>
+							</c-product-Record-Component>
+						</div>
+					</section>
+				</div>
+			</template>
+		</div>
+		<div>
+			<c-custom-Pagination-Component  page-size-options={pageSizeOptions} 
+                                            is-header='false' hide-bottom='false'
+                                            is-bottom-of-pagination='true' 
+                                            page-number={pageNumber} 
+                                            onclickfirstpage={handleOnClickFirstPage}
+                                            onclickprevpage={handleOnClickPrevPage} 
+                                            onclicknextpage={handleOnClickNextPage}
+                                            onclicklastpage={handleOnClickLastPage} 
+                                            onclickrandompage={handleOnClickRandomPage}
+                                            onchangepagesize={handlePageSizeChange} 
+                                            b-disable-first={bDisableFirst} 
+                                            b-disable-last={bDisableLast}>
+			</c-custom-Pagination-Component>
+		</div>
+	</div>
+    <!--Main Body-->
+</template>

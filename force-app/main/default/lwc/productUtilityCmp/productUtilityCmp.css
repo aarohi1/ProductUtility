@@ -1,0 +1,40 @@
+.header-container {
+	background-color: white;
+	margin: 2%;
+	max-width: 100%;	
+}
+
+.heading-container {
+	justify-content: space-between;
+}
+
+.record-info {
+	display: flex;
+	margin-right: 1%;
+}
+
+.container {
+		justify-content: space-between;
+}
+.field-dependency-container {	
+	margin-top: 2%;
+}
+
+.record-filter-container {
+	margin-top: 2%;
+}
+
+.button-style {
+	display: flex;
+	margin-top:2.3%;
+	padding:10px;
+}
+
+.slds-table .slds-row-number::after {
+	display: none !important;
+}
+
+.tableContainer .slds-table tbody .slds-hint-parent .slds-truncate .slds-row-number{
+	display: none !important;
+	background-color: red;
+}

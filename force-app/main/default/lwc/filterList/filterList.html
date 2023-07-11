@@ -1,0 +1,29 @@
+<template>
+    <div>
+        <div style="z-index:100;position:absolute;margin-left:-20%;margin-top:-3%;width:16.5rem;min-height:8rem">
+            <lightning-card title="Filter">
+                <lightning-button-icon icon-name="utility:close" variant="border-filled" alternative-text="Show More" slot="actions" onclick={onClose}></lightning-button-icon>
+                <p class="slds-p-horizontal_small"></p>
+                <div>
+                    <lightning-combobox
+                        name="progress"
+                        label="PriceBook"
+                        value={selectedPriceBookId}
+                        placeholder="Select Progress"
+                        options={priceBookNameOption}
+                        onchange={handlePriceBookCHange} ></lightning-combobox>
+                </div>
+                <div slot="footer">
+                    <div style="display: flex;padding: 10px;">
+                        <div class="cancelButton">
+                            <button onclick={onClose} type="button" class="slds-button slds-button_neutral">Cancel</button>
+                        </div>
+                        <div>
+                            <button onclick={handleSaveFilter} type="button" variant="brand" class="slds-button slds-button_neutral">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </lightning-card>
+         </div>
+    </div>
+</template>

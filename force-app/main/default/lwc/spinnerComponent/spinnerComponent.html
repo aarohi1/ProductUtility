@@ -1,0 +1,28 @@
+<template>
+    
+    <!-- Modal will open on click of this modal -->
+    <!-- <lightning-button name="openModal" label="Open Modal" onclick={openModal} variant="brand" class="slds-m-around_small"></lightning-button> -->
+ 
+    <!-- This Modal will only be visible if showModal is set to true -->
+    <!-- <template if:true={showModal}> -->
+        <section aria-modal="true" class="slds-modal slds-fade-in-open">
+            <!-- <div class="slds-modal__container "> -->
+               
+                <div class="modalBody">
+                    <template if:true={showLoading}>
+                          <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+                    </template>
+                  
+                </div>
+               
+            <!-- </div> -->
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    <!-- </template> -->
+</template>
+ 
+<!-- 
+    Code by CafeForce 
+    Website: http://www.cafeforce.com 
+    DO NOT REMOVE THIS HEADER/FOOTER FOR FREE CODE USAGE 
+-->
