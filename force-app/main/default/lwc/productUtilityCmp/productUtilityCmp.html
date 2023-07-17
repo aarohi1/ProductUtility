@@ -26,8 +26,8 @@
 					<div class="slds-grid">
 						<template for:each={fieldDependencyList} for:item="fields" for:index="index">
                             <div class="field-dependency-labelcheckbox" key={fields.id}>
-                                {fields}<lightning-input type="checkbox" name={fields} onclick={checkBoxSelect}
-                                    checked={checkbool}></lightning-input>
+                                {fields}<lightning-input type="checkbox" name={fields} onclick={onFieldDependencySelect}
+                                    ></lightning-input>
                             </div>
 						</template>
 					</div>
@@ -43,28 +43,33 @@
 
                         <lightning-input    variant="label-hidden"
                                             label="Pre"
+                                            disabled={bDvalButton}
                                             type="number"
                                             placeholder="%"
                                             class="number-button-style"
-                                            onkeypress={handleSearchonKeyPress}></lightning-input>
+                                            onchange={handlePercenChange}></lightning-input>
 
                         <lightning-combobox name="pickList" 
-                                            value={value} default="10" 
+                                            value={value} default="+" 
                                             placeholder="+"
+                                            disabled={bDvalButton}
                                             options={getOperator} 
                                             dropdown-alignment="auto" class="button-style"
                                             onchange={handleOperatorChange}></lightning-combobox>
 
                         <lightning-button   variant="brand" 
+                                            disabled={bDvalButton}
                                             label="Update" 
                                             title="update"
-                                            onclick={handleClick}
+                                            onclick={onUpdateProduct}
                                             class="button-style"> </lightning-button>
 
                         <lightning-button-icon  variant="brand" 
                                                 size="medium" 
                                                 icon-name="utility:skip_back"
+                                                disabled={isRevertdisabled}
 							                    alternative-text="Revert" 
+                                                onclick={handleRevert}
                                                 class="button-style"></lightning-button-icon>
 
 						<lightning-button-icon  class="button-style" 
@@ -105,6 +110,7 @@
                                     onsave={handleSave}
                                     draft-values={draftValues}
                                     onrowaction={handleRelatedClick}
+                                    onrowselection={handleRowSelection}
                                     columns={dataTableColumns}>
                 </lightning-datatable>
                 <!--
@@ -113,17 +119,16 @@
 				</c-custom-Table>-->
 			</template>
 
-			<!-- <template if:true={isDetailPage}>
+			<template if:true={isDetailShow}>
 				<div>
 					<section>
 						<div>
-							<c-product-Record-Component ongetbool={handleback} child-data={childData} field-data={tHead}
-								onsaverecordpageevent={saveRecordPage} ontabnameevent={gettabname}>
+							<c-product-Record-Component onclosedetailpage={handleCloseDetailPage} child-data={relatedPricebookData}>
 							</c-product-Record-Component>
 						</div>
 					</section>
 				</div>
-			</template> -->
+			</template>
 		</div>
 		<div>
 			<c-custom-Pagination-Component  page-size-options={pageSizeOptions} 

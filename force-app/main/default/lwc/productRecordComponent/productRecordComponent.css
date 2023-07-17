@@ -1,0 +1,12 @@
+.related-detail-container{
+	z-index:100;
+	position:absolute;
+	top: 20%;
+	left: 10%;
+	right: 10%;
+	min-width:80%;
+	max-width:100%;
+	max-height:30%;
+	min-height:10%;
+	max-width: 60%;
+}

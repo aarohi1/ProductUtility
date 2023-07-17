@@ -1,0 +1,24 @@
+<template>
+    <div class="slds-modal slds-fade-in-open">
+        <div class="related-detail-container">
+           <lightning-card title="Details">
+                <lightning-button-icon icon-name="utility:close" variant="border-filled" alternative-text="Show More" slot="actions" onclick={onClose}></lightning-button-icon>
+                
+                <div class="slds-m-left_x-small">
+                    <c-header-Of-Table heading="Price Book Entry" header-icon="standard:pricebook"></c-header-Of-Table>
+                </div>
+                <div class="slds-modal__container ">
+                    <template for:each={productRelatedData} for:item="price" >
+                        <div key={price.name}>
+                            <lightning-datatable key-field="Id" data={price.tRec} show-row-number-column
+                                hide-checkbox-column columns={price.tHead} editable="false"
+                                onrowaction={handleRowAction} draft-values={draftValues}>
+                            </lightning-datatable>
+                        </div>
+                    </template>
+                </div>
+            </lightning-card>
+        </div>
+    </div>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

@@ -45,11 +45,3 @@
 	margin-top:2.3%;
 	padding:10px;
 }
-.slds-table .slds-row-number::after {
-	display: none !important;
-}
-
-.tableContainer .slds-table tbody .slds-hint-parent .slds-truncate .slds-row-number{
-	display: none !important;
-	background-color: red;
-}

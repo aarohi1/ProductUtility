@@ -2,22 +2,23 @@ import { LightningElement, track, wire } from 'lwc';
 import getData from '@salesforce/apex/ProductLWCController.getData';
 import getFilteredData from '@salesforce/apex/ProductLWCController.getFilteredData';
 import getAllObjFiedlMap from '@salesforce/apex/ProductLWCController.getAllObjFiedlMap';
+import revertDisabled from '@salesforce/apex/ProductLWCController.revertDisabled';
 import updateProduct from '@salesforce/apex/ProductLWCController.updateProduct';
+import revertProduct from '@salesforce/apex/ProductLWCController.revertProduct';
 import { loadStyle } from 'lightning/platformResourceLoader';
 import LightningCardCSS from '@salesforce/resourceUrl/datatableCSS';
-import { refreshApex } from '@salesforce/apex';
 import { updateRecord } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class ProductUtilityCmp extends LightningElement {
     
     @track isLoading = true;
+    @track isDetailShow = false;
     @track originalData = [];
     @track filteredData = [];
     @track tableData = [];
     @track allFieldMap = [];
     @track fieldDependencyList = [];
-    @track wireProductList=[];
 
     //Pagination
     @track currentPage = 1;
@@ -31,12 +32,25 @@ export default class ProductUtilityCmp extends LightningElement {
     @track tHeadList;
 
     @track filterOpen = false;
-    @track filterPriceookId = '';
+    @track filterPriceookId = 'all';
 
 
     //datatable
     @track dataTableColumns = [];
 
+    //related record
+    @track relatedPricebookData;
+
+    //update
+    @track isFieldDepCheck = false;
+    @track percentRate = 0;
+    @track operatorVal = '+';
+    @track selectedProductRecID = [];
+
+    //revert
+    @track isRevertdisabled = true;
+
+   
     //Load data
     getProductData(){
         getData({})
@@ -49,7 +63,7 @@ export default class ProductUtilityCmp extends LightningElement {
 
     getField(){
         getAllObjFiedlMap({})
-        .then(result => {
+        .then(result => { 
             this.allFieldMap = result;
             this.processTableBuild();
         })   
@@ -57,6 +71,7 @@ export default class ProductUtilityCmp extends LightningElement {
 
     connectedCallback(){
         this.getProductData();
+        this.revertedDisabled();
     }
     
 
@@ -85,6 +100,14 @@ export default class ProductUtilityCmp extends LightningElement {
 
     get bDisableLast() {
         return this.recordEnd === this.totalRecords;
+    }
+
+    get bDvalButton(){
+        if(this.isFieldDepCheck){
+            return false;
+        }else{
+            return true;
+        }
     }
 
     getDataTableColumns(){  
@@ -156,6 +179,13 @@ export default class ProductUtilityCmp extends LightningElement {
         this.totalPages = (Math.ceil(Number(this.totalRecords) / Number(this.pageSize)));
     }
 
+    revertedDisabled(){
+        revertDisabled({})
+        .then(result=>{
+            this.isRevertdisabled = result;
+        });
+    }
+
     processTableBuild(){ 
         this.isLoading = true;
         this.countTablePageCounts();
@@ -168,18 +198,16 @@ export default class ProductUtilityCmp extends LightningElement {
     }
     
     processFieldDependencyValues() {
+        let fieldDepList = [];
         this.fieldDependencyList = [];
         for (var key in this.allFieldMap) {
             if (key != 'Product' && key != 'Discount Schedule') {
-                this.fieldDependencyList.push(key);
+                fieldDepList.push(key);
             }
         }    
-        for (var j in this.fieldDependencyList) {
-            if (this.fieldDependencyList[j] == 'Discount Tier') {
-                this.fieldDependencyList[j] = 'Volume Price';
-            }
-            if (this.fieldDependencyList[j] == 'Pricebook Entry') {
-                this.fieldDependencyList[j] = 'List Price';
+        for (var j in fieldDepList) {
+            if (fieldDepList[j] == 'Pricebook Entry') {
+                this.fieldDependencyList.push('List Price');
             }
         }
     }
@@ -219,7 +247,7 @@ export default class ProductUtilityCmp extends LightningElement {
             await Promise.all(recordUpdatePromises);
 
             this.isLoading = false;
-
+            this.revertedDisabled();
             this.refreshData();
          
         } catch (error) {
@@ -249,23 +277,26 @@ export default class ProductUtilityCmp extends LightningElement {
 
     handleRelatedClick(event){
         var productId = event.detail.row.Id;
+        this.isDetailShow = true;
         var childProductData = this.originalData.filter(function(item) {
             if(item.prod.Id==productId){
-                let temp = item.prod;
-                return temp;
+                return item.prod;
             } else {
                 return false ;
             }              
         })
-        console.log('Child Data--->', JSON.stringify(childProductData));
-        var relatedPricebook = childProductData.map(item=>{
+        this.relatedPricebookData = childProductData.map(item=>{
             return item.prod.PricebookEntries;
         })
-        console.log('related data==>',JSON.stringify(relatedPricebook));
     }
+    handleCloseDetailPage(){
+        this.isDetailShow = false;
+    }
+
     /**
      * Search input
      */
+
     onchangeSearch (event) {
          this.searchKey = event.target.value.toLowerCase();
     }
@@ -303,6 +334,7 @@ export default class ProductUtilityCmp extends LightningElement {
     /**
      * Filter
      */
+
     handleFilter() {
         this.filterOpen = !this.filterOpen;
     }
@@ -440,6 +472,109 @@ export default class ProductUtilityCmp extends LightningElement {
             this.recordEnd = this.totalRecords;
         }
         this.paginationHelper();
+    }
+
+     /**
+     * Update Functionality
+     */
+
+    onFieldDependencySelect(event){
+        this.isFieldDepCheck = event.target.checked;
+    }
+
+    handlePercenChange(event){
+        if(event.target.value>0){
+            this.percentRate = event.target.value;
+        }
+        else{
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'ERROR',
+                    message: 'Negative value not allowed',
+                    variant: 'Error'
+                })
+            );
+        }
+    }
+    handleOperatorChange(event){
+        this.operatorVal = event.target.value;
+    }
+
+    handleRowSelection(event){
+        let productRec = event.detail.selectedRows;
+        this.selectedProductRecID = productRec.map(item=>{
+            return item.Id;
+        });
+    }
+
+    async onUpdateProduct(){
+        console.log('percent Rate====>',this.percentRate);
+        console.log('operatorVal====>',this.operatorVal);
+        if(this.percentRate < 0 || this.percentRate == 0 || this.operatorVal == ''){
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: ' Cannot Perform Update Operation ',
+                    message: 'Check Percent Rate or Operator value',
+                    variant: 'Error'
+                })
+            );
+        }else{
+            if(this.selectedProductRecID.length == 0){
+                let allProdId = this.originalData.map(item=>{
+                    return item.prod.Id;
+                })
+                this.selectedProductRecID = allProdId;
+            }
+            this.isLoading = true;
+            await updateProduct({filterPriceBookId:this.filterPriceookId, rate:this.percentRate, operatorValue:this.operatorVal, selectedProdId:this.selectedProductRecID})
+            .then(result=>{
+                this.selectedProductRecID = [];
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Price Updated Successfully ',
+                        message: result,
+                        variant: 'success'
+                    })
+                );
+                this.revertedDisabled();
+                this.refreshData();
+                this.isLoading = false;
+            })
+        }
+    }
+
+
+
+    handleRevert(){
+        revertProduct({})
+        .then(result=>{
+            this.operatorVal = '';
+            this.selectedProductRecID = [];
+            this.percentRate = '%';
+            if(result=='Success'){
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Price Reverted Successfully ',
+                        message: result,
+                        variant: 'success'
+                    })
+                );
+            }else if(result == 'Already Reverted'){
+                this.revertedDisabled();
+            }
+            else{
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Price Not Reverted',
+                        message: result,
+                        variant: 'Error'
+                    })
+                );
+            }
+            this.revertedDisabled();
+            this.refreshData();
+            this.isLoading = false;
+        })
     }
 
     /**
