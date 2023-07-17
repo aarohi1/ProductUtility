@@ -90,67 +90,64 @@ public with sharing class ProductLWCController {
 
     @AuraEnabled
     public static string updateProduct(String filterPriceBookId, Double rate, String operatorValue, List<String> selectedProdId ) {
+        System.debug('filterPriceBookId==>'+filterPriceBookId);
+        System.debug('rate==>'+rate);
+        System.debug('operatorValue==>'+operatorValue);
+        System.debug('selectedProdId==>'+selectedProdId);
+
+        String message = '';
         
         String updateProductQuery = builtProductQuery() + ' and Id IN: selectedProdId';
         List<PricebookEntry> updatePricebookentryList = new List<PricebookEntry>();
         Map<Id,PricebookEntry> priceBookMap = new Map<Id,PricebookEntry>();
         List<Product2> productList = Database.query(updateProductQuery);
-       
-        if(!productList.isEmpty()){
-            Update_Tracking__c UT= new Update_Tracking__c();
-            UT.Status__c = 'In Progress';
-            insert UT;
+        System.debug('productList ===>'+productList);
+        try{
+            if(!productList.isEmpty()){
+                Update_Tracking__c UT= new Update_Tracking__c();
+                UT.Status__c = 'In Progress';
+                insert UT;
 
-            String recsJSON = JSON.serialize(productList);
-            Attachment jsonfile = new Attachment();  
-            jsonfile.ParentId = UT.Id;
-            jsonfile.Name = 'Products ' + string.valueOf(system.now());	
-            jsonfile.ContentType = 'text/plain';
-            jsonfile.Body = Blob.valueOf(recsJSON);
+                String recsJSON = JSON.serialize(productList);
+                Attachment jsonfile = new Attachment();  
+                jsonfile.ParentId = UT.Id;
+                jsonfile.Name = 'Products ' + string.valueOf(system.now());	
+                jsonfile.ContentType = 'text/plain';
+                jsonfile.Body = Blob.valueOf(recsJSON);
 
-            for(Product2 prod: productList){
-                priceBookMap.put(prod.Id,prod.pricebookentries);
-            }
-            for(PricebookEntry pbe: priceBookMap.values()){
-            
-                /*
-                    update logic in custom object and line items 
-                */
-
-                /*
-                Update_Tracking_line_Item__c UTLineItem = new Update_Tracking_line_Item__c();
-                UTLineItem.Field_API_Name__c = 'unitprice';
-                UTLineItem.Object_API_Name__c = 'PricebookEntry';
-                UTLineItem.Old_Value__c = pbe.unitprice;
-                UTLineItem.Update_Tracking__c = UT.Id;
-                UTLineItem.PriceBookEntryId__c = pbe.Id;
-                UTLineItem.ProductId__c = pbe.pricebook2ID;
-                insertUTLineItemList.add(UTLineItem);
-                */
-
-                if(operatorValue == '+'){ 
-                    if(filterPriceBookId == 'all'){
-                        pbe.unitprice = pbe.unitprice + (pbe.unitprice * (rate / 100)) ; 
-                    }else if(pbe.PriceBook2Id == filterPriceBookId){
-                        pbe.unitprice = pbe.unitprice + (pbe.unitprice * (rate / 100)) ; 
-                    }
-                }else{ 
-                    if(filterPriceBookId == 'all'){
-                        pbe.unitprice = pbe.unitprice - (pbe.unitprice * (rate/ 100)) ; 
-                    }else if(pbe.PriceBook2Id == filterPriceBookId){
-                        pbe.unitprice = pbe.unitprice - (pbe.unitprice * (rate / 100)) ; 
+                for(Product2 prod: productList){
+                //     priceBookMap.put(prod.Id,prod.pricebookentries);
+                // }
+                    for(PricebookEntry pbe: prod.pricebookentries){
+                        if(operatorValue == '+'){ 
+                            if(filterPriceBookId == 'all'){
+                                pbe.unitprice = pbe.unitprice + (pbe.unitprice * (rate / 100)) ; 
+                            }else if(pbe.PriceBook2Id == filterPriceBookId){
+                                pbe.unitprice = pbe.unitprice + (pbe.unitprice * (rate / 100)) ; 
+                            }
+                        }else{ 
+                            if(filterPriceBookId == 'all'){
+                                pbe.unitprice = pbe.unitprice - (pbe.unitprice * (rate/ 100)) ; 
+                            }else if(pbe.PriceBook2Id == filterPriceBookId){
+                                pbe.unitprice = pbe.unitprice - (pbe.unitprice * (rate / 100)) ; 
+                            }
+                        }
+                        updatePricebookentryList.add(pbe);
                     }
                 }
-                updatePricebookentryList.add(pbe);
+                if(jsonfile!=null){
+                    insert jsonfile;
+                }       
             }
-            if(jsonfile!=null){
-                insert jsonfile;
-            }       
+            if(!updatePricebookentryList.isEmpty()){
+                update updatePricebookentryList;
+                message = 'Update Successfully';
+            }
+        }catch (Exception e) {
+            message = 'Unsuccess';
+            throw new AuraHandledException(e.getMessage());
         }
-        if(!updatePricebookentryList.isEmpty()){
-            update updatePricebookentryList;
-        }
-        return 'Update Successfully';
+        return message;
     }
 
     /*

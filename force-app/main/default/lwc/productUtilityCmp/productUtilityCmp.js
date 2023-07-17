@@ -507,45 +507,34 @@ export default class ProductUtilityCmp extends LightningElement {
         });
     }
 
-    async onUpdateProduct(){
-        console.log('percent Rate====>',this.percentRate);
-        console.log('operatorVal====>',this.operatorVal);
-        if(this.percentRate < 0 || this.percentRate == 0 || this.operatorVal == ''){
+    onUpdateProduct(){
+        if(this.selectedProductRecID.length == 0){
+            let allProdId = this.originalData.map(item=>{
+                return item.prod.Id;
+            })
+            this.selectedProductRecID = allProdId;
+        }
+        console.log('this.selectedProductRecID====>',this.selectedProductRecID);
+        this.isLoading = true;
+        updateProduct({filterPriceBookId:this.filterPriceookId, rate:this.percentRate, operatorValue:this.operatorVal, selectedProdId:this.selectedProductRecID})
+        .then(result=>{
+            this.selectedProductRecID = [];
             this.dispatchEvent(
                 new ShowToastEvent({
-                    title: ' Cannot Perform Update Operation ',
-                    message: 'Check Percent Rate or Operator value',
-                    variant: 'Error'
+                    title: 'Price Updated Successfully ',
+                    message: result,
+                    variant: 'success'
                 })
             );
-        }else{
-            if(this.selectedProductRecID.length == 0){
-                let allProdId = this.originalData.map(item=>{
-                    return item.prod.Id;
-                })
-                this.selectedProductRecID = allProdId;
-            }
-            this.isLoading = true;
-            await updateProduct({filterPriceBookId:this.filterPriceookId, rate:this.percentRate, operatorValue:this.operatorVal, selectedProdId:this.selectedProductRecID})
-            .then(result=>{
-                this.selectedProductRecID = [];
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: 'Price Updated Successfully ',
-                        message: result,
-                        variant: 'success'
-                    })
-                );
-                this.revertedDisabled();
-                this.refreshData();
-                this.isLoading = false;
-            })
-        }
+            this.revertedDisabled();
+            this.refreshData();
+            this.isLoading = false;
+        })
     }
 
 
-
     handleRevert(){
+        this.isLoading = true;
         revertProduct({})
         .then(result=>{
             this.operatorVal = '';
